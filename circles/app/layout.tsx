@@ -35,6 +35,11 @@ export default function RootLayout({
             <NavigationMenuList>
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
+                  <Link href="/">Generator</Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
                   <Link href="/gallery">Gallery</Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
