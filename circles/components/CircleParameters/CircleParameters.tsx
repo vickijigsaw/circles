@@ -6,7 +6,7 @@ const CircleParameters = ({ index }: { index: number }) => {
         <div>
             <div className="flex flex-col gap-1">
                 <Label htmlFor="CircleDiameter">Circle {index} Diameter</Label>
-                <Input type="number" id="CircleDiameter" min={100} placeholder="Enter circle diameter"></Input>
+                <Input type="number" id="CircleDiameter" min={20} placeholder="Enter circle diameter"></Input>
             </div>
         </div>
     );
