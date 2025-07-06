@@ -2,6 +2,7 @@ import CircleParameters from "@/components/CircleParameters/CircleParameters";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
 import Image from "next/image";
 
 export default function Home() {
@@ -26,9 +27,10 @@ export default function Home() {
                 <Input type="number" id="canvasHeight" min={100} placeholder="Enter canvas height"></Input>
               </div>
             </div>
-            <div className="flex flex-col gap-4">
-              <CircleParameters></CircleParameters>
+            <div className="flex flex-col gap-4 py-4">
+              <CircleParameters index={1}></CircleParameters>
             </div>
+            <Button variant="outline">+ Add a Circle</Button>
           </CardContent>
         </Card>
 
