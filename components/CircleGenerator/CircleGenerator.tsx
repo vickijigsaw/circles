@@ -1,8 +1,11 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 
 interface Circle {
     diameter: number;
+    count: number;
+    color: string;
     index: number;
 }
 
@@ -33,12 +36,6 @@ export default function CircleGenerator({
     // Minimum distance between circles (in pixels)
     const MIN_DISTANCE = 5;
 
-    // Color palette for different circle sizes
-    const colors = [
-        '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A',
-        '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'
-    ];
-
     // Check if two circles overlap
     const doCirclesOverlap = (
         x1: number,
@@ -65,6 +62,7 @@ export default function CircleGenerator({
     // Try to place a circle randomly
     const tryPlaceCircle = (
         radius: number,
+        color: string,
         existingCircles: PlacedCircle[],
         maxAttempts: number = 100
     ): PlacedCircle | null => {
@@ -88,7 +86,7 @@ export default function CircleGenerator({
             }
 
             if (!overlaps) {
-                return { x, y, radius, color: colors[existingCircles.length % colors.length] };
+                return { x, y, radius, color };
             }
         }
 
@@ -102,23 +100,25 @@ export default function CircleGenerator({
         // Sort circles by diameter (largest first) for better packing
         const sortedCircles = [...circles].sort((a, b) => b.diameter - a.diameter);
 
-        // Try to place each circle size multiple times
+        // Try to place each circle type
         for (const circleType of sortedCircles) {
             const radius = circleType.diameter / 2;
-            const color = colors[(circleType.index - 1) % colors.length];
+            const desiredCount = circleType.count;
+            const color = circleType.color;
 
-            // Try to place multiple circles of this size
-            // Number of attempts depends on canvas size and circle size
-            const maxCircles = Math.floor((canvasWidth * canvasHeight) / (circleType.diameter * circleType.diameter * 2));
-            const attemptCount = Math.min(maxCircles, 50); // Cap at 50 circles per size
+            // Try to place the specified number of circles
+            let placedCount = 0;
+            let consecutiveFailures = 0;
+            const maxConsecutiveFailures = 20; // Stop if we fail 20 times in a row
 
-            for (let i = 0; i < attemptCount; i++) {
-                const newCircle = tryPlaceCircle(radius, placed);
+            while (placedCount < desiredCount && consecutiveFailures < maxConsecutiveFailures) {
+                const newCircle = tryPlaceCircle(radius, color, placed);
                 if (newCircle) {
-                    placed.push({ ...newCircle, color });
+                    placed.push(newCircle);
+                    placedCount++;
+                    consecutiveFailures = 0;
                 } else {
-                    // If we can't place anymore, stop trying this size
-                    break;
+                    consecutiveFailures++;
                 }
             }
         }
@@ -141,6 +141,10 @@ export default function CircleGenerator({
         setRegenerateKey(prev => prev + 1);
     };
 
+    // Calculate total requested vs placed circles
+    const totalRequested = circles.reduce((sum, c) => sum + c.count, 0);
+    const totalPlaced = placedCircles.length;
+
     return (
         <Card className="w-full">
             <CardContent className="p-6 space-y-4">
@@ -156,10 +160,10 @@ export default function CircleGenerator({
                         <rect
                             width={canvasWidth}
                             height={canvasHeight}
-                            fill="#f8f9fa"
+                            fill="#ffffff"
                         />
 
-                        {/* Margin guide (optional - can remove) */}
+                        {/* Margin guide (subtle, optional) */}
                         <rect
                             x={EDGE_MARGIN}
                             y={EDGE_MARGIN}
@@ -169,6 +173,7 @@ export default function CircleGenerator({
                             stroke="#e0e0e0"
                             strokeWidth="1"
                             strokeDasharray="5,5"
+                            opacity="0.3"
                         />
 
                         {/* Generated circles */}
@@ -179,9 +184,8 @@ export default function CircleGenerator({
                                 cy={circle.y}
                                 r={circle.radius}
                                 fill={circle.color}
-                                fillOpacity="0.7"
-                                stroke="#333"
-                                strokeWidth="1.5"
+                                stroke={circle.color}
+                                strokeWidth="2"
                             />
                         ))}
 
@@ -217,7 +221,7 @@ export default function CircleGenerator({
                 <div className="flex items-center justify-between pt-2">
                     <div className="text-sm text-muted-foreground space-y-1">
                         <p>Canvas: {canvasWidth} × {canvasHeight}px</p>
-                        <p>Circles generated: {placedCircles.length}</p>
+                        <p>Circles placed: {totalPlaced} / {totalRequested} requested</p>
                         <p>Circle types: {circles.length}</p>
                     </div>
 
@@ -229,10 +233,17 @@ export default function CircleGenerator({
                     </button>
                 </div>
 
-                {/* Warning if too few circles */}
-                {placedCircles.length < 5 && circles.length > 0 && (
+                {/* Warning if not all circles could be placed */}
+                {totalPlaced < totalRequested && circles.length > 0 && (
                     <div className="text-xs text-amber-600 bg-amber-50 p-3 rounded-md border border-amber-200">
-                        ⚠️ Few circles were placed. Try: smaller circle sizes, larger canvas, or click Regenerate
+                        ⚠️ Only {totalPlaced} of {totalRequested} circles could fit. Try: smaller circles, fewer circles, larger canvas, or click Regenerate
+                    </div>
+                )}
+
+                {/* Success message */}
+                {totalPlaced === totalRequested && totalPlaced > 0 && (
+                    <div className="text-xs text-green-600 bg-green-50 p-3 rounded-md border border-green-200">
+                        ✅ All circles placed successfully!
                     </div>
                 )}
             </CardContent>

@@ -10,24 +10,33 @@ import CircleGenerator from "@/components/CircleGenerator/CircleGenerator";
 
 type CircleObject = {
   diameter: number;
+  count: number;
+  color: string;
   index: number;
 };
 
 export default function Home() {
   // State for circles - starts with empty array
   const [circleObjects, setCircleObjects] = useState<CircleObject[]>([]);
-
+  
+  // State for first circle (index 1)
+  const [firstCircleDiameter, setFirstCircleDiameter] = useState<number>(40);
+  const [firstCircleCount, setFirstCircleCount] = useState<number>(10);
+  const [firstCircleColor, setFirstCircleColor] = useState<string>("#000000");
+  
   // State for canvas dimensions - with initial values
   const [canvasWidth, setCanvasWidth] = useState<number>(800);
   const [canvasHeight, setCanvasHeight] = useState<number>(600);
-
-  // Mock auth state (to replace with real auth later)
+  
+  // Mock auth state (we'll replace this with real auth later)
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
   // Function to add a new circle
   const handleAddCircle = () => {
     const newCircle: CircleObject = {
-      diameter: 20,
+      diameter: 30,
+      count: 8,
+      color: "#000000",
       index: circleObjects.length + 2, // +2 because first circle is index 1
     };
     setCircleObjects(prev => [...prev, newCircle]);
@@ -48,33 +57,64 @@ export default function Home() {
 
   // Function to update a circle's diameter
   const handleUpdateDiameter = (indexToUpdate: number, newDiameter: number) => {
-    setCircleObjects(prev =>
-      prev.map(circle =>
-        circle.index === indexToUpdate
-          ? { ...circle, diameter: newDiameter }
-          : circle
-      )
-    );
+    if (indexToUpdate === 1) {
+      setFirstCircleDiameter(newDiameter);
+    } else {
+      setCircleObjects(prev =>
+        prev.map(circle =>
+          circle.index === indexToUpdate
+            ? { ...circle, diameter: newDiameter }
+            : circle
+        )
+      );
+    }
+  };
+
+  // Function to update a circle's count
+  const handleUpdateCount = (indexToUpdate: number, newCount: number) => {
+    if (indexToUpdate === 1) {
+      setFirstCircleCount(newCount);
+    } else {
+      setCircleObjects(prev =>
+        prev.map(circle =>
+          circle.index === indexToUpdate
+            ? { ...circle, count: newCount }
+            : circle
+        )
+      );
+    }
+  };
+
+  // Function to update a circle's color
+  const handleUpdateColor = (indexToUpdate: number, newColor: string) => {
+    if (indexToUpdate === 1) {
+      setFirstCircleColor(newColor);
+    } else {
+      setCircleObjects(prev =>
+        prev.map(circle =>
+          circle.index === indexToUpdate
+            ? { ...circle, color: newColor }
+            : circle
+        )
+      );
+    }
   };
 
   // Function to save pattern to gallery
   const handleSavePattern = () => {
     if (!isLoggedIn) {
-      // If not logged in, redirect to login
       alert("Please log in to save patterns!");
       // TODO: router.push('/login')
     } else {
-      // If logged in, save to backend
       const patternData = {
         canvasWidth,
         canvasHeight,
         circles: [
-          { diameter: 20, index: 1 },
+          { diameter: firstCircleDiameter, count: firstCircleCount, color: firstCircleColor, index: 1 },
           ...circleObjects
         ]
       };
       console.log("Saving pattern:", patternData);
-      // TODO: API call to save pattern
       alert("Pattern saved to gallery!");
     }
   };
@@ -89,7 +129,7 @@ export default function Home() {
     <div className="min-h-screen w-full flex flex-col">
       {/* Header with greeting */}
       <header className="w-full py-8 px-8 border-b">
-        <h1 className="text-5xl font-bold text-center">
+        <h1 className="text-4xl font-bold text-center">
           👋 Hello, I'm a Circle Pattern Generator
         </h1>
         <p className="text-center text-muted-foreground mt-2">
@@ -104,7 +144,7 @@ export default function Home() {
           <Card className="w-full max-w-sm flex-shrink-0">
             <CardHeader>
               <CardTitle>Parameters</CardTitle>
-              <CardDescription>Create Your Custom Pattern!</CardDescription>
+              <CardDescription>Create Your Dream Pattern!</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Canvas dimensions section */}
@@ -137,13 +177,17 @@ export default function Home() {
 
               {/* Circle parameters section */}
               <div className="space-y-4">
-                <h3 className="font-semibold text-sm">Circle Sizes</h3>
-
+                <h3 className="font-semibold text-sm">Circle Types</h3>
+                
                 {/* First circle - cannot be deleted */}
                 <CircleParameters
                   index={1}
-                  diameter={20}
+                  diameter={firstCircleDiameter}
+                  count={firstCircleCount}
+                  color={firstCircleColor}
                   onDiameterChange={newVal => handleUpdateDiameter(1, newVal)}
+                  onCountChange={newVal => handleUpdateCount(1, newVal)}
+                  onColorChange={newVal => handleUpdateColor(1, newVal)}
                 />
 
                 {/* Additional circles - can be deleted */}
@@ -152,8 +196,12 @@ export default function Home() {
                     key={circle.index}
                     index={circle.index}
                     diameter={circle.diameter}
+                    count={circle.count}
+                    color={circle.color}
                     deletable
                     onDiameterChange={newVal => handleUpdateDiameter(circle.index, newVal)}
+                    onCountChange={newVal => handleUpdateCount(circle.index, newVal)}
+                    onColorChange={newVal => handleUpdateColor(circle.index, newVal)}
                     handleRemoveCircle={() => handleRemoveCircle(circle.index)}
                   />
                 ))}
@@ -164,9 +212,15 @@ export default function Home() {
                 variant="outline"
                 onClick={handleAddCircle}
                 className="w-full"
+                disabled={circleObjects.length >= 4}
               >
-                + Add a Circle
+                + Add a Circle Type
               </Button>
+              {circleObjects.length >= 4 && (
+                <p className="text-xs text-muted-foreground text-center">
+                  Maximum 5 circle types reached
+                </p>
+              )}
 
               {/* Action buttons for saving and exporting */}
               <div className="space-y-2 pt-4 border-t">
@@ -194,7 +248,7 @@ export default function Home() {
               canvasWidth={canvasWidth}
               canvasHeight={canvasHeight}
               circles={[
-                { diameter: 20, index: 1 },
+                { diameter: firstCircleDiameter, count: firstCircleCount, color: firstCircleColor, index: 1 },
                 ...circleObjects
               ]}
             />
