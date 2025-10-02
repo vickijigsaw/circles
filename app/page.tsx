@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import CircleParameters from "@/components/CircleParameters/CircleParameters";
 import CircleGenerator from "@/components/CircleGenerator/CircleGenerator";
+import { useAuth } from "@/contexts/AuthContext"; // Add this import
 
 type CircleObject = {
   diameter: number;
@@ -18,18 +19,18 @@ type CircleObject = {
 export default function Home() {
   // State for circles - starts with empty array
   const [circleObjects, setCircleObjects] = useState<CircleObject[]>([]);
-  
+
   // State for first circle (index 1)
   const [firstCircleDiameter, setFirstCircleDiameter] = useState<number>(40);
   const [firstCircleCount, setFirstCircleCount] = useState<number>(10);
   const [firstCircleColor, setFirstCircleColor] = useState<string>("#000000");
-  
+
   // State for canvas dimensions - with initial values
   const [canvasWidth, setCanvasWidth] = useState<number>(800);
   const [canvasHeight, setCanvasHeight] = useState<number>(600);
-  
-  // Mock auth state (we'll replace this with real auth later)
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+
+  // Use real auth instead of mock
+  const { user } = useAuth();
 
   // Function to add a new circle
   const handleAddCircle = () => {
@@ -102,21 +103,22 @@ export default function Home() {
 
   // Function to save pattern to gallery
   const handleSavePattern = () => {
-    if (!isLoggedIn) {
+    if (!user) {
       alert("Please log in to save patterns!");
       // TODO: router.push('/login')
-    } else {
-      const patternData = {
-        canvasWidth,
-        canvasHeight,
-        circles: [
-          { diameter: firstCircleDiameter, count: firstCircleCount, color: firstCircleColor, index: 1 },
-          ...circleObjects
-        ]
-      };
-      console.log("Saving pattern:", patternData);
-      alert("Pattern saved to gallery!");
+      return;
     }
+
+    const patternData = {
+      canvasWidth,
+      canvasHeight,
+      circles: [
+        { diameter: firstCircleDiameter, count: firstCircleCount, color: firstCircleColor, index: 1 },
+        ...circleObjects
+      ]
+    };
+    console.log("Saving pattern:", patternData);
+    alert("Pattern saved to gallery!");
   };
 
   // Function to export as SVG
@@ -178,7 +180,7 @@ export default function Home() {
               {/* Circle parameters section */}
               <div className="space-y-4">
                 <h3 className="font-semibold text-sm">Circle Types</h3>
-                
+
                 {/* First circle - cannot be deleted */}
                 <CircleParameters
                   index={1}
