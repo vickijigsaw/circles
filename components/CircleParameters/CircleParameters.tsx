@@ -1,48 +1,51 @@
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label"
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 
-
-type Props = {
+interface CircleParametersProps {
   index: number;
   diameter: number;
   deletable?: boolean;
-  onDiameterChange: (value: number) => void;
+  onDiameterChange: (newDiameter: number) => void;
   handleRemoveCircle?: () => void;
-};
+}
 
-const CircleParameters = ({
+export default function CircleParameters({
   index,
   diameter,
   deletable = false,
   onDiameterChange,
-  handleRemoveCircle,
-}: Props) => {
+  handleRemoveCircle
+}: CircleParametersProps) {
   return (
-    <div>
-      <div className="flex flex-col gap-1">
-        <div className="flex justify-between items-center">
-          <Label htmlFor={`circle-diameter-${index}`}>
-            Circle {index} Diameter
-          </Label>
-          {deletable && handleRemoveCircle && (
-            <span
-              className="text-red-600 pr-4.5 hover:cursor-pointer hover:text-red-900"
-              onClick={handleRemoveCircle}
-            >
-              x
-            </span>
-          )}
-        </div>
+    <div className="flex items-end gap-2 p-3 border rounded-lg bg-muted/30">
+      <div className="flex-1 space-y-2">
+        <Label htmlFor={`circle-${index}`} className="text-xs">
+          Circle {index} Diameter (px)
+        </Label>
         <Input
           type="number"
-          id={`circle-diameter-${index}`}
-          min={20}
+          id={`circle-${index}`}
+          min={10}
+          max={200}
           value={diameter}
-          onChange={e => onDiameterChange(Number(e.target.value))}
+          onChange={(e) => onDiameterChange(Number(e.target.value))}
+          placeholder="Diameter"
+          className="text-base"
         />
       </div>
+
+      {deletable && handleRemoveCircle && (
+        <Button
+          variant="destructive"
+          size="icon"
+          onClick={handleRemoveCircle}
+          className="flex-shrink-0"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      )}
     </div>
   );
-};
-
-export default CircleParameters
+}
