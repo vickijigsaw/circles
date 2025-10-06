@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import AuthProvider, { useAuth } from "@/contexts/AuthContext"; // Fixed import
+import { SessionProvider } from "next-auth/react";
+import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -120,18 +122,11 @@ function Navigation() {
   );
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <AuthProvider>
-          <Navigation />
-          {children}
-        </AuthProvider>
+      <body>
+        <SessionProvider>{children}</SessionProvider>
       </body>
     </html>
   );

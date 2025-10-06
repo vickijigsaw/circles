@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import CircleParameters from "@/components/circle/CircleParameters";
 import CircleGenerator from "@/components/circle/CircleGenerator";
-import { useAuth } from "@/contexts/AuthContext"; // Add this import
+import { useSession } from "next-auth/react";
+
 
 type CircleObject = {
   diameter: number;
@@ -29,8 +30,9 @@ export default function Home() {
   const [canvasWidth, setCanvasWidth] = useState<number>(1000);
   const [canvasHeight, setCanvasHeight] = useState<number>(500);
 
-  // Use real auth instead of mock
-  const { user } = useAuth();
+  // Auth
+  const { data: session } = useSession();
+  console.log(session?.user);
 
   // Function to add a new circle
   const handleAddCircle = () => {
@@ -103,9 +105,9 @@ export default function Home() {
 
   // Function to save pattern to gallery
   const handleSavePattern = () => {
-    if (!user) {
+    if (!session?.user) {
       alert("Please log in to save patterns!");
-      // TODO: router.push('/login')
+      // e.g., router.push("/login");
       return;
     }
 
