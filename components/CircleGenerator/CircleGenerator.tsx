@@ -1,6 +1,8 @@
+"use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
+import { generateCirclePattern } from "@/utils/patternGenerator";
 
 interface Circle {
     diameter: number;
@@ -9,140 +11,33 @@ interface Circle {
     index: number;
 }
 
-interface CircleGeneratorProps {
-    canvasWidth: number;
-    canvasHeight: number;
-    circles: Circle[];
-}
-
-interface PlacedCircle {
-    x: number;
-    y: number;
-    radius: number;
-    color: string;
-}
-
 export default function CircleGenerator({
     canvasWidth,
     canvasHeight,
-    circles
-}: CircleGeneratorProps) {
-    const [placedCircles, setPlacedCircles] = useState<PlacedCircle[]>([]);
-    const [regenerateKey, setRegenerateKey] = useState(0);
-
-    // Minimum distance from canvas edges (in pixels)
+    circles,
+}: {
+    canvasWidth: number;
+    canvasHeight: number;
+    circles: Circle[];
+}) {
     const EDGE_MARGIN = 20;
-
-    // Minimum distance between circles (in pixels)
     const MIN_DISTANCE = 20;
 
-    // Check if two circles overlap
-    const doCirclesOverlap = (
-        x1: number,
-        y1: number,
-        r1: number,
-        x2: number,
-        y2: number,
-        r2: number
-    ): boolean => {
-        const distance = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-        return distance < (r1 + r2 + MIN_DISTANCE);
-    };
+    const [regenerateKey, setRegenerateKey] = useState(0);
 
-    // Check if circle is within canvas bounds
-    const isWithinBounds = (x: number, y: number, radius: number): boolean => {
-        return (
-            x - radius >= EDGE_MARGIN &&
-            x + radius <= canvasWidth - EDGE_MARGIN &&
-            y - radius >= EDGE_MARGIN &&
-            y + radius <= canvasHeight - EDGE_MARGIN
-        );
-    };
-
-    // Try to place a circle randomly
-    const tryPlaceCircle = (
-        radius: number,
-        color: string,
-        existingCircles: PlacedCircle[],
-        maxAttempts: number = 100
-    ): PlacedCircle | null => {
-        for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            // Random position within bounds
-            const x = EDGE_MARGIN + radius + Math.random() * (canvasWidth - 2 * EDGE_MARGIN - 2 * radius);
-            const y = EDGE_MARGIN + radius + Math.random() * (canvasHeight - 2 * EDGE_MARGIN - 2 * radius);
-
-            // Check if within bounds
-            if (!isWithinBounds(x, y, radius)) {
-                continue;
-            }
-
-            // Check if overlaps with existing circles
-            let overlaps = false;
-            for (const existing of existingCircles) {
-                if (doCirclesOverlap(x, y, radius, existing.x, existing.y, existing.radius)) {
-                    overlaps = true;
-                    break;
-                }
-            }
-
-            if (!overlaps) {
-                return { x, y, radius, color };
-            }
-        }
-
-        return null; // Could not place circle after max attempts
-    };
-
-    // Generate pattern
-    const generatePattern = () => {
-        const placed: PlacedCircle[] = [];
-
-        // Create one big array of all circles to place
-        const allCircles: { radius: number; color: string }[] = [];
-        circles.forEach(circleType => {
-            const radius = circleType.diameter / 2;
-            for (let i = 0; i < circleType.count; i++) {
-                allCircles.push({ radius, color: circleType.color });
-            }
-        });
-
-        // Shuffle for randomness
-        const shuffled = [...allCircles].sort(() => Math.random() - 0.5);
-
-        // Try to place each circle
-        for (const circle of shuffled) {
-            const newCircle = tryPlaceCircle(circle.radius, circle.color, placed, 50);
-            if (newCircle) {
-                placed.push(newCircle);
-            }
-        }
-
-        return placed;
-    };
-
-    // Regenerate pattern when parameters change
-    useEffect(() => {
-        if (circles.length > 0 && canvasWidth > 0 && canvasHeight > 0) {
-            const pattern = generatePattern();
-            setPlacedCircles(pattern);
-        } else {
-            setPlacedCircles([]);
-        }
+    // Generate pattern when parameters or key change
+    const placedCircles = useMemo(() => {
+        if (!canvasWidth || !canvasHeight || circles.length === 0) return [];
+        return generateCirclePattern(canvasWidth, canvasHeight, circles, EDGE_MARGIN, MIN_DISTANCE);
     }, [canvasWidth, canvasHeight, circles, regenerateKey]);
 
-    // Function to manually regenerate
-    const handleRegenerate = () => {
-        setRegenerateKey(prev => prev + 1);
-    };
-
-    // Calculate total requested vs placed circles
     const totalRequested = circles.reduce((sum, c) => sum + c.count, 0);
     const totalPlaced = placedCircles.length;
 
     return (
         <Card className="w-full">
             <CardContent className="p-6 space-y-4">
-                {/* Canvas with pattern */}
+                {/* Canvas */}
                 <div className="border-2 rounded-lg overflow-hidden bg-white shadow-inner">
                     <svg
                         width={canvasWidth}
@@ -151,13 +46,9 @@ export default function CircleGenerator({
                         viewBox={`0 0 ${canvasWidth} ${canvasHeight}`}
                     >
                         {/* Background */}
-                        <rect
-                            width={canvasWidth}
-                            height={canvasHeight}
-                            fill="#ffffff"
-                        />
+                        <rect width={canvasWidth} height={canvasHeight} fill="#fff" />
 
-                        {/* Margin guide (subtle, optional) */}
+                        {/* Margin guide */}
                         <rect
                             x={EDGE_MARGIN}
                             y={EDGE_MARGIN}
@@ -170,7 +61,7 @@ export default function CircleGenerator({
                             opacity="0.3"
                         />
 
-                        {/* Generated circles */}
+                        {/* Circles */}
                         {placedCircles.map((circle, idx) => (
                             <circle
                                 key={idx}
@@ -211,30 +102,30 @@ export default function CircleGenerator({
                     </svg>
                 </div>
 
-                {/* Pattern info and controls */}
+                {/* Info & Controls */}
                 <div className="flex items-center justify-between pt-2">
                     <div className="text-sm text-muted-foreground space-y-1">
                         <p>Canvas: {canvasWidth} × {canvasHeight}px</p>
-                        <p>Circles placed: {totalPlaced} / {totalRequested} requested</p>
+                        <p>Circles placed: {totalPlaced} / {totalRequested}</p>
                         <p>Circle types: {circles.length}</p>
                     </div>
 
                     <button
-                        onClick={handleRegenerate}
+                        onClick={() => setRegenerateKey((k) => k + 1)}
                         className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
                     >
                         🔄 Regenerate
                     </button>
                 </div>
 
-                {/* Warning if not all circles could be placed */}
-                {totalPlaced < totalRequested && circles.length > 0 && (
+                {/* Status messages */}
+                {totalRequested > 0 && totalPlaced < totalRequested && (
                     <div className="text-xs text-amber-600 bg-amber-50 p-3 rounded-md border border-amber-200">
-                        ⚠️ Only {totalPlaced} of {totalRequested} circles could fit. Try: smaller circles, fewer circles, larger canvas, or click Regenerate
+                        ⚠️ Only {totalPlaced} of {totalRequested} circles could fit. Try smaller circles,
+                        fewer circles, a larger canvas, or click Regenerate.
                     </div>
                 )}
 
-                {/* Success message */}
                 {totalPlaced === totalRequested && totalPlaced > 0 && (
                     <div className="text-xs text-green-600 bg-green-50 p-3 rounded-md border border-green-200">
                         ✅ All circles placed successfully!
