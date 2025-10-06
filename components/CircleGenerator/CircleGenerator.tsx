@@ -31,10 +31,10 @@ export default function CircleGenerator({
     const [regenerateKey, setRegenerateKey] = useState(0);
 
     // Minimum distance from canvas edges (in pixels)
-    const EDGE_MARGIN = 10;
+    const EDGE_MARGIN = 20;
 
     // Minimum distance between circles (in pixels)
-    const MIN_DISTANCE = 5;
+    const MIN_DISTANCE = 20;
 
     // Check if two circles overlap
     const doCirclesOverlap = (
@@ -97,29 +97,23 @@ export default function CircleGenerator({
     const generatePattern = () => {
         const placed: PlacedCircle[] = [];
 
-        // Sort circles by diameter (largest first) for better packing
-        const sortedCircles = [...circles].sort((a, b) => b.diameter - a.diameter);
-
-        // Try to place each circle type
-        for (const circleType of sortedCircles) {
+        // Create one big array of all circles to place
+        const allCircles: { radius: number; color: string }[] = [];
+        circles.forEach(circleType => {
             const radius = circleType.diameter / 2;
-            const desiredCount = circleType.count;
-            const color = circleType.color;
+            for (let i = 0; i < circleType.count; i++) {
+                allCircles.push({ radius, color: circleType.color });
+            }
+        });
 
-            // Try to place the specified number of circles
-            let placedCount = 0;
-            let consecutiveFailures = 0;
-            const maxConsecutiveFailures = 20; // Stop if we fail 20 times in a row
+        // Shuffle for randomness
+        const shuffled = [...allCircles].sort(() => Math.random() - 0.5);
 
-            while (placedCount < desiredCount && consecutiveFailures < maxConsecutiveFailures) {
-                const newCircle = tryPlaceCircle(radius, color, placed);
-                if (newCircle) {
-                    placed.push(newCircle);
-                    placedCount++;
-                    consecutiveFailures = 0;
-                } else {
-                    consecutiveFailures++;
-                }
+        // Try to place each circle
+        for (const circle of shuffled) {
+            const newCircle = tryPlaceCircle(circle.radius, circle.color, placed, 50);
+            if (newCircle) {
+                placed.push(newCircle);
             }
         }
 

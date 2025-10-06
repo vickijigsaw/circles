@@ -21,13 +21,13 @@ export default function Home() {
   const [circleObjects, setCircleObjects] = useState<CircleObject[]>([]);
 
   // State for first circle (index 1)
-  const [firstCircleDiameter, setFirstCircleDiameter] = useState<number>(40);
+  const [firstCircleDiameter, setFirstCircleDiameter] = useState<number>(50);
   const [firstCircleCount, setFirstCircleCount] = useState<number>(10);
   const [firstCircleColor, setFirstCircleColor] = useState<string>("#000000");
 
   // State for canvas dimensions - with initial values
-  const [canvasWidth, setCanvasWidth] = useState<number>(800);
-  const [canvasHeight, setCanvasHeight] = useState<number>(600);
+  const [canvasWidth, setCanvasWidth] = useState<number>(1000);
+  const [canvasHeight, setCanvasHeight] = useState<number>(500);
 
   // Use real auth instead of mock
   const { user } = useAuth();
