@@ -5,8 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import CircleParameters from "@/components/CircleParameters/CircleParameters";
-import CircleGenerator from "@/components/CircleGenerator/CircleGenerator";
+import CircleParameters from "@/components/circle/CircleParameters";
+import CircleGenerator from "@/components/circle/CircleGenerator";
 import { useAuth } from "@/contexts/AuthContext"; // Add this import
 
 type CircleObject = {
@@ -36,7 +36,7 @@ export default function Home() {
   const handleAddCircle = () => {
     const newCircle: CircleObject = {
       diameter: 30,
-      count: 8,
+      count: 15,
       color: "#000000",
       index: circleObjects.length + 2, // +2 because first circle is index 1
     };

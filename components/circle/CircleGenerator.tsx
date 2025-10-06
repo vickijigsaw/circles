@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { useMemo, useState } from "react";
-import { generateCirclePattern } from "@/utils/patternGenerator";
+import { generateCirclePattern } from "@/components/utils/patternGenerator";
 
 interface Circle {
     diameter: number;
