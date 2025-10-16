@@ -43,41 +43,49 @@ function Navigation() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center justify-between px-8">
-        {/* Left side - Main Navigation */}
-        <NavigationMenu>
-          <NavigationMenuList>
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link
-                  className={`px-4 py-2 text-sm font-medium transition-colors hover:text-primary ${
-                    isActive("/") ? "text-primary" : "text-muted-foreground"
-                  }`}
-                  href="/"
-                >
-                  Generator
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link
-                  className={`px-4 py-2 text-sm font-medium transition-colors hover:text-primary ${
-                    isActive("/gallery")
+      <div
+        className="
+      flex flex-col sm:flex-row
+      items-center sm:items-center justify-between
+      w-full max-w-7xl mx-auto px-8 h-auto sm:h-14
+      gap-2 sm:gap-0
+    "
+      >
+        {/* LEFT side - Main Navigation */}
+        <div className="flex items-center justify-center sm:justify-start gap-4">
+          <NavigationMenu>
+            <NavigationMenuList className="flex items-center gap-4">
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link
+                    href="/"
+                    className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/") ? "text-primary" : "text-muted-foreground"
+                      }`}
+                  >
+                    Generator
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuLink asChild>
+                  <Link
+                    href="/gallery"
+                    className={`text-sm font-medium transition-colors hover:text-primary ${isActive("/gallery")
                       ? "text-primary"
                       : "text-muted-foreground"
-                  }`}
-                  href="/gallery"
-                >
-                  Gallery
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
+                      }`}
+                  >
+                    Gallery
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+        </div>
 
-        {/* Right side - Auth Menu */}
-        <div className="flex items-center gap-2">
+        {/* RIGHT side - Auth buttons / user */}
+        <div className="flex items-center justify-center sm:justify-end gap-2">
           {!user ? (
             <>
               <Button variant="ghost" asChild>
