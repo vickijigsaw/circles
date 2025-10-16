@@ -174,7 +174,7 @@ export default function Gallery() {
                                             <Button
                                                 variant="outline"
                                                 className="flex-1"
-                                                onClick={() => handleDownloadPattern(pattern)}
+                                                onClick={() => handleDownLoadPattern(pattern)}
                                             >
                                                 <Download className="h-4 w-4 mr-2" />
                                                 Download
@@ -223,7 +223,7 @@ export default function Gallery() {
                                         <div className="flex gap-2 flex-shrink-0">
                                             <Button
                                                 variant="outline"
-                                                onClick={() => handleDownloadPattern(pattern)}
+                                                onClick={() => handleDownLoadPattern(pattern)}
                                             >
                                                 <Download className="h-4 w-4 mr-2" />
                                                 Download

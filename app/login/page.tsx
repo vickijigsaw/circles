@@ -23,7 +23,7 @@ export default function LoginPage() {
         <div className="flex min-h-screen items-center justify-center bg-gray-50">
             <Card className="w-[320px]">
                 <CardContent className="p-6 space-y-4">
-                    <h1 className="text-lg font-semibold text-center">Sign In</h1>
+                    <h1 className="text-lg font-semibold text-center">Log In</h1>
                     <form onSubmit={handleLogin} className="space-y-3">
                         <Input
                             type="email"

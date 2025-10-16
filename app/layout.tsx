@@ -2,13 +2,19 @@
 
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from "@/components/ui/navigation-menu";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import AuthProvider, { useAuth } from "@/contexts/AuthContext"; // Fixed import
+import AuthProvider, { useAuth } from "@/contexts/AuthContext";
 import { SessionProvider } from "next-auth/react";
-import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,7 +26,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// Create a separate component for the navigation to use the auth hook
+// ✅ NAVIGATION BAR (always visible)
 function Navigation() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
@@ -31,12 +37,12 @@ function Navigation() {
     try {
       await logout();
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
     }
   };
 
   return (
-    <nav className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center justify-between px-8">
         {/* Left side - Main Navigation */}
         <NavigationMenu>
@@ -44,8 +50,9 @@ function Navigation() {
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
                 <Link
-                  className={`px-4 py-2 text-sm font-medium transition-colors hover:text-primary ${isActive("/") ? "text-primary" : "text-muted-foreground"
-                    }`}
+                  className={`px-4 py-2 text-sm font-medium transition-colors hover:text-primary ${
+                    isActive("/") ? "text-primary" : "text-muted-foreground"
+                  }`}
                   href="/"
                 >
                   Generator
@@ -55,8 +62,11 @@ function Navigation() {
             <NavigationMenuItem>
               <NavigationMenuLink asChild>
                 <Link
-                  className={`px-4 py-2 text-sm font-medium transition-colors hover:text-primary ${isActive("/gallery") ? "text-primary" : "text-muted-foreground"
-                    }`}
+                  className={`px-4 py-2 text-sm font-medium transition-colors hover:text-primary ${
+                    isActive("/gallery")
+                      ? "text-primary"
+                      : "text-muted-foreground"
+                  }`}
                   href="/gallery"
                 >
                   Gallery
@@ -92,7 +102,9 @@ function Navigation() {
                             href="/settings"
                             className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                           >
-                            <div className="text-sm font-medium leading-none">Settings</div>
+                            <div className="text-sm font-medium leading-none">
+                              Settings
+                            </div>
                             <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                               Manage your account
                             </p>
@@ -104,7 +116,9 @@ function Navigation() {
                           onClick={handleLogout}
                           className="w-full block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground text-left"
                         >
-                          <div className="text-sm font-medium leading-none">Log Out</div>
+                          <div className="text-sm font-medium leading-none">
+                            Log Out
+                          </div>
                           <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                             Sign out of your account
                           </p>
@@ -122,11 +136,25 @@ function Navigation() {
   );
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+// ✅ ROOT LAYOUT
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body>
-        <SessionProvider>{children}</SessionProvider>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
+      >
+        <SessionProvider>
+          <AuthProvider>
+            {/* ✅ Always visible navbar */}
+            <Navigation />
+            {/* Add padding so content isn’t hidden behind fixed navbar */}
+            <main className="pt-16">{children}</main>
+          </AuthProvider>
+        </SessionProvider>
       </body>
     </html>
   );
