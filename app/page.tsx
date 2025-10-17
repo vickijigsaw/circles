@@ -104,14 +104,18 @@ export default function Home() {
   };
 
   // Function to save pattern to gallery
-  const handleSavePattern = () => {
+  const handleSavePattern = async () => {
     if (!session?.user) {
       alert("Please log in to save patterns!");
       // e.g., router.push("/login");
       return;
     }
 
+    const now = new Date();
+    const name = `Pattern_${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
+
     const patternData = {
+      name,
       canvasWidth,
       canvasHeight,
       circles: [
@@ -119,8 +123,22 @@ export default function Home() {
         ...circleObjects
       ]
     };
-    console.log("Saving pattern:", patternData);
-    alert("Pattern saved to gallery!");
+
+
+    const response = await fetch('/api/patterns', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(patternData),
+    });
+
+    if (response.ok) {
+      alert("Pattern saved to gallery!");
+    } else {
+      alert("Failed to save pattern.");
+    }
+
   };
 
   // Function to export as SVG
