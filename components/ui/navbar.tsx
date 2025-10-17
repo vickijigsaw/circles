@@ -20,7 +20,7 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b bg-white/90 backdrop-blur">
-      <div className="max-w-6xl mx-auto flex h-14 items-center justify-between px-6">
+      <div className="flex h-14 items-center justify-between px-6">
         {/* LEFT – main links */}
         <NavigationMenu>
           <NavigationMenuList>

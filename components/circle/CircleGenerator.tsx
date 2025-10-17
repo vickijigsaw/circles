@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { generateCirclePattern } from "@/components/utils/patternGenerator";
 
 interface Circle {
@@ -23,16 +23,34 @@ export default function CircleGenerator({
     const EDGE_MARGIN = 20;
     const MIN_DISTANCE = 20;
 
-    const [regenerateKey, setRegenerateKey] = useState(0);
+    const [placedCircles, setPlacedCircles] = useState<any[]>([]);
+    const [hasGenerated, setHasGenerated] = useState(false);
 
-    // Generate pattern when parameters or key change
-    const placedCircles = useMemo(() => {
-        if (!canvasWidth || !canvasHeight || circles.length === 0) return [];
-        return generateCirclePattern(canvasWidth, canvasHeight, circles, EDGE_MARGIN, MIN_DISTANCE);
-    }, [canvasWidth, canvasHeight, circles, regenerateKey]);
+    // Only generate pattern when explicitly requested
+    const generatePattern = () => {
+        if (!canvasWidth || !canvasHeight || circles.length === 0) {
+            setPlacedCircles([]);
+            return;
+        }
+
+        const result = generateCirclePattern(canvasWidth, canvasHeight, circles, EDGE_MARGIN, MIN_DISTANCE);
+        setPlacedCircles(result);
+        setHasGenerated(true);
+    };
+
+    // Generate initial pattern when component mounts or when circles array changes from empty to having items
+    useEffect(() => {
+        if (circles.length > 0 && !hasGenerated) {
+            generatePattern();
+        } else if (circles.length === 0) {
+            setPlacedCircles([]);
+            setHasGenerated(false);
+        }
+    }, [circles.length > 0]);
 
     const totalRequested = circles.reduce((sum, c) => sum + c.count, 0);
     const totalPlaced = placedCircles.length;
+
 
     return (
         <Card className="w-full">
@@ -111,10 +129,11 @@ export default function CircleGenerator({
                     </div>
 
                     <button
-                        onClick={() => setRegenerateKey((k) => k + 1)}
-                        className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                        onClick={generatePattern}
+                        disabled={circles.length === 0}
+                        className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        🔄 Regenerate
+                        🔄 {hasGenerated ? 'Regenerate' : 'Generate Pattern'}
                     </button>
                 </div>
 

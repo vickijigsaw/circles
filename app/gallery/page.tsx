@@ -85,7 +85,7 @@ export default function Gallery() {
     return (
         <div className="min-h-screen w-full flex flex-col">
             {/* Header with greeting */}
-            <header className="w-full py-8 px-8 border-b bg-gradient-to-r from-primary/5 to-primary/10">
+            <header className="w-full text-center py-8 px-8 border-b bg-gradient-to-r from-primary/5 to-primary/10">
                 <h1 className="text-4xl font-bold">
                     👋 Hello, {username}!
                 </h1>

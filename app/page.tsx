@@ -143,9 +143,9 @@ export default function Home() {
 
       {/* Main content */}
       <main className="flex-1 w-full px-8 py-8">
-        <div className="flex gap-6 items-start">
+        <div className="flex gap-6 items-start flex-col md:flex-row">
           {/* Left side - Parameters Card */}
-          <Card className="w-full max-w-sm flex-shrink-0">
+          <Card className="w-full md:flex-1">
             <CardHeader>
               <CardTitle>Parameters</CardTitle>
               <CardDescription>Create Your Dream Pattern!</CardDescription>
