@@ -3,6 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { useMemo, useState, useEffect } from "react";
 import { generateCirclePattern } from "@/components/utils/patternGenerator";
+import { PlacedCircle } from "@/components/utils/circleUtils";
 
 interface Circle {
     diameter: number;
@@ -11,31 +12,39 @@ interface Circle {
     index: number;
 }
 
+interface CircleGeneratorProps {
+    canvasWidth: number;
+    canvasHeight: number;
+    circles: Circle[];
+    onPlacedCirclesChange?: (placedCircles: PlacedCircle[]) => void;
+}
+
 export default function CircleGenerator({
     canvasWidth,
     canvasHeight,
     circles,
-}: {
-    canvasWidth: number;
-    canvasHeight: number;
-    circles: Circle[];
-}) {
+    onPlacedCirclesChange,
+}: CircleGeneratorProps) {
     const EDGE_MARGIN = 20;
     const MIN_DISTANCE = 20;
 
-    const [placedCircles, setPlacedCircles] = useState<any[]>([]);
+    const [placedCircles, setPlacedCircles] = useState<PlacedCircle[]>([]);
     const [hasGenerated, setHasGenerated] = useState(false);
 
     // Only generate pattern when explicitly requested
     const generatePattern = () => {
         if (!canvasWidth || !canvasHeight || circles.length === 0) {
             setPlacedCircles([]);
+            onPlacedCirclesChange?.([]);
             return;
         }
 
         const result = generateCirclePattern(canvasWidth, canvasHeight, circles, EDGE_MARGIN, MIN_DISTANCE);
         setPlacedCircles(result);
         setHasGenerated(true);
+
+        // Notify parent component of the placed circles
+        onPlacedCirclesChange?.(result);
     };
 
     // Generate initial pattern when component mounts or when circles array changes from empty to having items
@@ -45,12 +54,12 @@ export default function CircleGenerator({
         } else if (circles.length === 0) {
             setPlacedCircles([]);
             setHasGenerated(false);
+            onPlacedCirclesChange?.([]);
         }
     }, [circles.length > 0]);
 
     const totalRequested = circles.reduce((sum, c) => sum + c.count, 0);
     const totalPlaced = placedCircles.length;
-
 
     return (
         <Card className="w-full">

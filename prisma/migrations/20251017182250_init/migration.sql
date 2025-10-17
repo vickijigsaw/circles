@@ -15,6 +15,7 @@ CREATE TABLE "patterns" (
     "canvasWidth" INTEGER NOT NULL,
     "canvasHeight" INTEGER NOT NULL,
     "circles" JSONB NOT NULL,
+    "placedCircles" JSONB NOT NULL,
     "userId" TEXT NOT NULL,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL,

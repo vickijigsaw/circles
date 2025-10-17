@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import CircleParameters from "@/components/circle/CircleParameters";
 import CircleGenerator from "@/components/circle/CircleGenerator";
 import { useSession } from "next-auth/react";
-
+import { PlacedCircle } from "@/components/utils/circleUtils";
 
 type CircleObject = {
   diameter: number;
@@ -30,9 +30,11 @@ export default function Home() {
   const [canvasWidth, setCanvasWidth] = useState<number>(1000);
   const [canvasHeight, setCanvasHeight] = useState<number>(500);
 
+  // State for placed circles (actual positions)
+  const [placedCircles, setPlacedCircles] = useState<PlacedCircle[]>([]);
+
   // Auth
   const { data: session } = useSession();
-  console.log(session?.user);
 
   // Function to add a new circle
   const handleAddCircle = () => {
@@ -107,7 +109,11 @@ export default function Home() {
   const handleSavePattern = async () => {
     if (!session?.user) {
       alert("Please log in to save patterns!");
-      // e.g., router.push("/login");
+      return;
+    }
+
+    if (placedCircles.length === 0) {
+      alert("Please generate a pattern first!");
       return;
     }
 
@@ -121,9 +127,9 @@ export default function Home() {
       circles: [
         { diameter: firstCircleDiameter, count: firstCircleCount, color: firstCircleColor, index: 1 },
         ...circleObjects
-      ]
+      ],
+      placedCircles // Include the actual placed circles
     };
-
 
     const response = await fetch('/api/patterns', {
       method: 'POST',
@@ -138,7 +144,6 @@ export default function Home() {
     } else {
       alert("Failed to save pattern.");
     }
-
   };
 
   // Function to export as SVG
@@ -273,6 +278,7 @@ export default function Home() {
                 { diameter: firstCircleDiameter, count: firstCircleCount, color: firstCircleColor, index: 1 },
                 ...circleObjects
               ]}
+              onPlacedCirclesChange={setPlacedCircles}
             />
           </div>
         </div>

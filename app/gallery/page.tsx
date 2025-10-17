@@ -5,14 +5,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Grid3x3, List, Trash2, Download } from "lucide-react";
 import { useSession } from "next-auth/react";
+import ThumbnailPreview from "@/components/circle/ThumbnailPreview";
+import { PlacedCircle } from "@/components/utils/circleUtils";
 
 // Type for saved patterns
-type SavedPattern = {
+export type SavedPattern = {
     id: string;
     name: string;
     canvasWidth: number;
     canvasHeight: number;
     circles: any[];
+    placedCircles?: PlacedCircle[];
     createdAt: string;
     updatedAt: string;
 };
@@ -94,10 +97,6 @@ export default function Gallery() {
         return new Date(dateString).toLocaleDateString();
     };
 
-    // Generate a simple thumbnail placeholder
-    const generateThumbnail = (pattern: SavedPattern) => {
-        return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${pattern.canvasWidth}' height='${pattern.canvasHeight}'%3E%3Crect width='${pattern.canvasWidth}' height='${pattern.canvasHeight}' fill='%23f8f9fa'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' fill='%23666' font-size='16'%3E${pattern.name}%3C/text%3E%3C/svg%3E`;
-    };
 
     // Show loading state
     if (isLoading) {
@@ -224,11 +223,7 @@ export default function Gallery() {
                                 <Card key={pattern.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                                     {/* Pattern preview */}
                                     <div className="aspect-video bg-muted relative overflow-hidden">
-                                        <img
-                                            src={generateThumbnail(pattern)}
-                                            alt={pattern.name}
-                                            className="w-full h-full object-cover"
-                                        />
+                                        <ThumbnailPreview pattern={pattern} />
                                     </div>
 
                                     <CardHeader>
@@ -275,11 +270,7 @@ export default function Gallery() {
                                     <div className="flex items-center gap-6 p-6">
                                         {/* Thumbnail */}
                                         <div className="w-32 h-24 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-                                            <img
-                                                src={generateThumbnail(pattern)}
-                                                alt={pattern.name}
-                                                className="w-full h-full object-cover"
-                                            />
+                                            <ThumbnailPreview pattern={pattern} />
                                         </div>
 
                                         {/* Pattern info */}

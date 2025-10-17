@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { name, canvasWidth, canvasHeight, circles } = await request.json();
+        const { name, canvasWidth, canvasHeight, circles, placedCircles } = await request.json();
 
         const pattern = await prisma.pattern.create({
             data: {
@@ -73,6 +73,7 @@ export async function POST(request: NextRequest) {
                 canvasWidth,
                 canvasHeight,
                 circles,
+                placedCircles: placedCircles || [],
                 userId: user.id
             }
         });

@@ -21,11 +21,12 @@ model User {
 }
 
 model Pattern {
-  id           String @id @default(cuid())
-  name         String
-  canvasWidth  Int
-  canvasHeight Int
-  circles      Json 
+  id            String @id @default(cuid())
+  name          String
+  canvasWidth   Int
+  canvasHeight  Int
+  circles       Json 
+  placedCircles Json
   
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
