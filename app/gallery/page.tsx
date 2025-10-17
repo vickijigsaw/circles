@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Grid3x3, List, Trash2, Download } from "lucide-react";
@@ -12,79 +12,149 @@ type SavedPattern = {
     name: string;
     canvasWidth: number;
     canvasHeight: number;
-    circles: { diameter: number; index: number }[];
+    circles: any[];
     createdAt: string;
-    thumbnail: string; // Base64 or URL to pattern preview
+    updatedAt: string;
 };
 
 export default function Gallery() {
-    // Mock user data (to come from auth later)
-
     const { data: session, status } = useSession();
-
     const username = session?.user?.name || "User";
 
     // View mode: 'grid' or 'list'
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [savedPatterns, setSavedPatterns] = useState<SavedPattern[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string>("");
 
-    // Mock saved patterns (to come from backend later)
-    const [savedPatterns, setSavedPatterns] = useState<SavedPattern[]>([
-        {
-            id: "1",
-            name: "Design 01",
-            canvasWidth: 800,
-            canvasHeight: 600,
-            circles: [
-                { diameter: 50, index: 1 },
-                { diameter: 30, index: 2 },
-                { diameter: 40, index: 3 }
-            ],
-            createdAt: "2025-10-01",
-            thumbnail: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23f8f9fa'/%3E%3Ccircle cx='80' cy='80' r='30' fill='%23FF6B6B' opacity='0.7'/%3E%3Ccircle cx='180' cy='80' r='10' fill='%234ECDC4' opacity='0.7'/%3E%3C/svg%3E"
-        },
-        {
-            id: "2",
-            name: "Design 02",
-            canvasWidth: 600,
-            canvasHeight: 400,
-            circles: [
-                { diameter: 60, index: 1 },
-                { diameter: 20, index: 2 }
-            ],
-            createdAt: "2024-10-02",
-            thumbnail: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23f8f9fa'/%3E%3Ccircle cx='80' cy='80' r='30' fill='%23FF6B6B' opacity='0.7'/%3E%3Ccircle cx='180' cy='80' r='10' fill='%234ECDC4' opacity='0.7'/%3E%3C/svg%3E"
-        },
-        {
-            id: "3",
-            name: "Design 03",
-            canvasWidth: 1000,
-            canvasHeight: 800,
-            circles: [
-                { diameter: 45, index: 1 },
-                { diameter: 35, index: 2 },
-                { diameter: 25, index: 3 },
-                { diameter: 15, index: 4 }
-            ],
-            createdAt: "2024-10-02",
-            thumbnail: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1000' height='800'%3E%3Crect width='1000' height='800' fill='%23f8f9fa'/%3E%3Ccircle cx='70' cy='70' r='22' fill='%23FF6B6B' opacity='0.7'/%3E%3Ccircle cx='150' cy='70' r='17' fill='%234ECDC4' opacity='0.7'/%3E%3Ccircle cx='230' cy='70' r='12' fill='%2345B7D1' opacity='0.7'/%3E%3C/svg%3E"
+    // Fetch patterns on mount and when session changes
+    useEffect(() => {
+        if (status === "loading") return; // Wait for session to load
+
+        if (session?.user) {
+            fetchPatterns();
+        } else {
+            setIsLoading(false);
         }
-    ]);
+    }, [session, status]);
+
+    const fetchPatterns = async () => {
+        try {
+            setIsLoading(true);
+            setError("");
+
+            const response = await fetch('/api/patterns');
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch patterns');
+            }
+
+            const data = await response.json();
+            setSavedPatterns(data.patterns || []);
+        } catch (error: any) {
+            console.error("Error fetching patterns:", error);
+            setError(error.message || "Failed to load patterns");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     // Delete pattern handler
-    const handleDeletePattern = (id: string) => {
-        if (confirm("Are you sure you want to delete this pattern?")) {
+    const handleDeletePattern = async (id: string) => {
+        if (!confirm("Are you sure you want to delete this pattern?")) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/patterns?id=${id}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete pattern');
+            }
+
+            // Remove pattern from local state
             setSavedPatterns(prev => prev.filter(pattern => pattern.id !== id));
-            // TODO: API call to delete from backend
-            console.log("Deleting pattern:", id);
+        } catch (error: any) {
+            console.error("Error deleting pattern:", error);
+            alert(`Failed to delete pattern: ${error.message}`);
         }
     };
 
-    // Download pattern handler
+    // Download pattern handler (placeholder)
     const handleDownLoadPattern = (pattern: SavedPattern) => {
         console.log("Downloading pattern:", pattern.name);
-        alert('Downloading ${pattern.name}...');
+        alert(`Downloading ${pattern.name}... (feature coming soon)`);
         // TODO: Implement actual SVG download
     };
+
+    // Format date for display
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString();
+    };
+
+    // Generate a simple thumbnail placeholder
+    const generateThumbnail = (pattern: SavedPattern) => {
+        return `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${pattern.canvasWidth}' height='${pattern.canvasHeight}'%3E%3Crect width='${pattern.canvasWidth}' height='${pattern.canvasHeight}' fill='%23f8f9fa'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' fill='%23666' font-size='16'%3E${pattern.name}%3C/text%3E%3C/svg%3E`;
+    };
+
+    // Show loading state
+    if (isLoading) {
+        return (
+            <div className="min-h-screen w-full flex flex-col">
+                <header className="w-full text-center py-8 px-8 border-b bg-gradient-to-r from-primary/5 to-primary/10">
+                    <h1 className="text-4xl font-bold">👋 Hello, {username}!</h1>
+                    <p className="text-muted-foreground mt-2 text-lg">Welcome back to your creative space!</p>
+                </header>
+                <main className="flex-1 w-full px-8 py-8 flex items-center justify-center">
+                    <p className="text-muted-foreground">Loading your patterns...</p>
+                </main>
+            </div>
+        );
+    }
+
+    // Show error state
+    if (error) {
+        return (
+            <div className="min-h-screen w-full flex flex-col">
+                <header className="w-full text-center py-8 px-8 border-b bg-gradient-to-r from-primary/5 to-primary/10">
+                    <h1 className="text-4xl font-bold">👋 Hello, {username}!</h1>
+                    <p className="text-muted-foreground mt-2 text-lg">Welcome back to your creative space!</p>
+                </header>
+                <main className="flex-1 w-full px-8 py-8 flex items-center justify-center">
+                    <Card className="p-6 text-center">
+                        <p className="text-red-600 mb-4">Error: {error}</p>
+                        <Button onClick={fetchPatterns}>Try Again</Button>
+                    </Card>
+                </main>
+            </div>
+        );
+    }
+
+    // Show login prompt if not authenticated
+    if (!session?.user) {
+        return (
+            <div className="min-h-screen w-full flex flex-col">
+                <header className="w-full text-center py-8 px-8 border-b bg-gradient-to-r from-primary/5 to-primary/10">
+                    <h1 className="text-4xl font-bold">👋 Hello!</h1>
+                    <p className="text-muted-foreground mt-2 text-lg">Please log in to view your gallery</p>
+                </header>
+                <main className="flex-1 w-full px-8 py-8 flex items-center justify-center">
+                    <Card className="p-12 text-center">
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="text-6xl">🔒</div>
+                            <h3 className="text-xl font-semibold">Login Required</h3>
+                            <p className="text-muted-foreground">Please log in to view your saved patterns</p>
+                            <Button asChild>
+                                <a href="/login">Log In</a>
+                            </Button>
+                        </div>
+                    </Card>
+                </main>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen w-full flex flex-col">
@@ -155,7 +225,7 @@ export default function Gallery() {
                                     {/* Pattern preview */}
                                     <div className="aspect-video bg-muted relative overflow-hidden">
                                         <img
-                                            src={pattern.thumbnail}
+                                            src={generateThumbnail(pattern)}
                                             alt={pattern.name}
                                             className="w-full h-full object-cover"
                                         />
@@ -164,13 +234,13 @@ export default function Gallery() {
                                     <CardHeader>
                                         <CardTitle className="text-lg">{pattern.name}</CardTitle>
                                         <CardDescription>
-                                            {pattern.canvasWidth} × {pattern.canvasHeight}px • {pattern.circles.length} circles
+                                            {pattern.canvasWidth} × {pattern.canvasHeight}px • {pattern.circles.length} circle types
                                         </CardDescription>
                                     </CardHeader>
 
                                     <CardContent>
                                         <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
-                                            <span>Created: {pattern.createdAt}</span>
+                                            <span>Created: {formatDate(pattern.createdAt)}</span>
                                         </div>
 
                                         {/* Action buttons */}
@@ -206,7 +276,7 @@ export default function Gallery() {
                                         {/* Thumbnail */}
                                         <div className="w-32 h-24 bg-muted rounded-lg overflow-hidden flex-shrink-0">
                                             <img
-                                                src={pattern.thumbnail}
+                                                src={generateThumbnail(pattern)}
                                                 alt={pattern.name}
                                                 className="w-full h-full object-cover"
                                             />
@@ -216,10 +286,10 @@ export default function Gallery() {
                                         <div className="flex-1 min-w-0">
                                             <h3 className="text-xl font-semibold mb-1">{pattern.name}</h3>
                                             <p className="text-sm text-muted-foreground mb-2">
-                                                {pattern.canvasWidth} × {pattern.canvasHeight}px • {pattern.circles.length} circles
+                                                {pattern.canvasWidth} × {pattern.canvasHeight}px • {pattern.circles.length} circle types
                                             </p>
                                             <p className="text-sm text-muted-foreground">
-                                                Created: {pattern.createdAt}
+                                                Created: {formatDate(pattern.createdAt)}
                                             </p>
                                         </div>
 
