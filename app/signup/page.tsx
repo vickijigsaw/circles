@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { signIn } from 'next-auth/react';
 
 export default function SignupPage() {
     const [email, setEmail] = useState('');
@@ -15,16 +15,36 @@ export default function SignupPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const { register } = useAuth();
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
 
         try {
-            await register(email, password, username);
-            // Redirect will happen automatically due to auth state change
+            // Register user
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password, username }),
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Registration failed');
+            }
+
+            // Auto-login after successful registration
+            const result = await signIn('credentials', {
+                email,
+                password,
+                redirect: false,
+            });
+
+            if (result?.ok) {
+                window.location.href = '/';
+            } else {
+                setError('Registration successful, but login failed. Please try logging in.');
+            }
         } catch (err: any) {
             setError(err.message || 'Registration failed');
         } finally {

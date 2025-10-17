@@ -4,6 +4,7 @@ import { use, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Grid3x3, List, Trash2, Download } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 // Type for saved patterns
 type SavedPattern = {
@@ -18,7 +19,10 @@ type SavedPattern = {
 
 export default function Gallery() {
     // Mock user data (to come from auth later)
-    const [username, setUsername] = useState<string>("Alex");
+
+    const { data: session, status } = useSession();
+
+    const username = session?.user?.name || "User";
 
     // View mode: 'grid' or 'list'
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
