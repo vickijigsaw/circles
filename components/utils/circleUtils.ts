@@ -2,7 +2,8 @@ export interface PlacedCircle {
     x: number;
     y: number;
     radius: number;
-    color: string;
+    diameter?: number;
+    color?: string;
 }
 
 // Check overlap between circles

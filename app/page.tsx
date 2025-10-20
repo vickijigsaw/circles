@@ -9,6 +9,7 @@ import CircleParameters from "@/components/circle/CircleParameters";
 import CircleGenerator from "@/components/circle/CircleGenerator";
 import { useSession } from "next-auth/react";
 import { PlacedCircle } from "@/components/utils/circleUtils";
+import { downloadSVG } from "@/components/utils/downloadUtils";
 
 type CircleObject = {
   diameter: number;
@@ -146,11 +147,18 @@ export default function Home() {
     }
   };
 
-  // Function to export as SVG
+  // Function to Download as SVG
   const handleExportSVG = () => {
-    alert("Exporting as SVG... (feature coming soon)");
-    // TODO: Implement SVG export
+    const patternData = {
+      name: "CurrentPattern",
+      canvasWidth,
+      canvasHeight,
+      placedCircles,
+    };
+
+    downloadSVG({ patternData });
   };
+
 
   return (
     <div className="min-h-screen w-full flex flex-col">
@@ -263,7 +271,7 @@ export default function Home() {
                   className="w-full"
                   variant="secondary"
                 >
-                  📥 Export as SVG
+                  📥 Download as SVG
                 </Button>
               </div>
             </CardContent>

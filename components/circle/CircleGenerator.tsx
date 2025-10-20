@@ -25,8 +25,10 @@ export default function CircleGenerator({
     circles,
     onPlacedCirclesChange,
 }: CircleGeneratorProps) {
+
     const EDGE_MARGIN = 20;
     const MIN_DISTANCE = 20;
+
 
     const [placedCircles, setPlacedCircles] = useState<PlacedCircle[]>([]);
     const [hasGenerated, setHasGenerated] = useState(false);
@@ -39,12 +41,26 @@ export default function CircleGenerator({
             return;
         }
 
-        const result = generateCirclePattern(canvasWidth, canvasHeight, circles, EDGE_MARGIN, MIN_DISTANCE);
-        setPlacedCircles(result);
-        setHasGenerated(true);
+        // Generate raw circles from your utility
+        const result: PlacedCircle[] = generateCirclePattern(
+            canvasWidth,
+            canvasHeight,
+            circles,
+            EDGE_MARGIN,
+            MIN_DISTANCE
+        );
 
-        // Notify parent component of the placed circles
-        onPlacedCirclesChange?.(result);
+        // Normalize them to include diameter + color
+        const normalized: PlacedCircle[] = result.map((c, i) => ({
+            ...c,
+            diameter: c.diameter || c.radius * 2,
+            color: c.color || circles[i % circles.length]?.color || "#000",
+        }));
+
+        // Store and notify
+        setPlacedCircles(normalized);
+        setHasGenerated(true);
+        onPlacedCirclesChange?.(normalized);
     };
 
     // Generate initial pattern when component mounts or when circles array changes from empty to having items
@@ -56,7 +72,8 @@ export default function CircleGenerator({
             setHasGenerated(false);
             onPlacedCirclesChange?.([]);
         }
-    }, [circles.length > 0]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [circles, canvasWidth, canvasHeight]);
 
     const totalRequested = circles.reduce((sum, c) => sum + c.count, 0);
     const totalPlaced = placedCircles.length;
@@ -94,7 +111,7 @@ export default function CircleGenerator({
                                 key={idx}
                                 cx={circle.x}
                                 cy={circle.y}
-                                r={circle.radius}
+                                r={circle.diameter ? circle.diameter / 2 : circle.radius}
                                 fill={circle.color}
                                 stroke={circle.color}
                                 strokeWidth="2"

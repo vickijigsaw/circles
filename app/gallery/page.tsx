@@ -7,6 +7,7 @@ import { Grid3x3, List, Trash2, Download } from "lucide-react";
 import { useSession } from "next-auth/react";
 import ThumbnailPreview from "@/components/circle/ThumbnailPreview";
 import { PlacedCircle } from "@/components/utils/circleUtils";
+import { downloadSVG } from "@/components/utils/downloadUtils";
 
 // Type for saved patterns
 export type SavedPattern = {
@@ -87,10 +88,9 @@ export default function Gallery() {
 
     // Download pattern handler (placeholder)
     const handleDownLoadPattern = (pattern: SavedPattern) => {
-        console.log("Downloading pattern:", pattern.name);
-        alert(`Downloading ${pattern.name}... (feature coming soon)`);
-        // TODO: Implement actual SVG download
+        downloadSVG({ patternData: pattern });
     };
+
 
     // Format date for display
     const formatDate = (dateString: string) => {
