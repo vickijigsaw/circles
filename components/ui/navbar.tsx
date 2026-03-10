@@ -10,10 +10,11 @@ import {
   NavigationMenuLink,
 } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   const isActive = (path: string) =>
     pathname === path ? "text-primary font-semibold" : "text-muted-foreground";
@@ -52,19 +53,21 @@ export default function Navbar() {
         </NavigationMenu>
 
         {/* RIGHT – auth controls */}
-        <div className="flex items-center gap-3">
-          {!session?.user ? (
+        <div className="flex items-center gap-3 min-w-[120px] justify-end">
+          {status === "loading" ? (
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          ) : !session?.user ? (
             <>
-              <Button variant="ghost" asChild>
+              <Button variant="ghost" asChild size="sm">
                 <Link href="/login">Log In</Link>
               </Button>
-              <Button asChild>
+              <Button asChild size="sm">
                 <Link href="/signup">Sign Up</Link>
               </Button>
             </>
           ) : (
             <>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-muted-foreground hidden sm:inline">
                 👋 {session.user.name || session.user.email}
               </span>
               <Button
