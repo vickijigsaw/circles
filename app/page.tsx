@@ -189,10 +189,9 @@ export default function Home() {
                   <Input
                     type="number"
                     id="canvasWidth"
-                    min={100}
                     max={2000}
-                    value={canvasWidth}
-                    onChange={(e) => setCanvasWidth(Number(e.target.value))}
+                    value={canvasWidth || ""}
+                    onChange={(e) => setCanvasWidth(e.target.value === "" ? 0 : Number(e.target.value))}
                     placeholder="Enter canvas width"
                   />
                 </div>
@@ -201,10 +200,9 @@ export default function Home() {
                   <Input
                     type="number"
                     id="canvasHeight"
-                    min={100}
                     max={2000}
-                    value={canvasHeight}
-                    onChange={(e) => setCanvasHeight(Number(e.target.value))}
+                    value={canvasHeight || ""}
+                    onChange={(e) => setCanvasHeight(e.target.value === "" ? 0 : Number(e.target.value))}
                     placeholder="Enter canvas height"
                   />
                 </div>
