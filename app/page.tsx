@@ -191,7 +191,10 @@ export default function Home() {
                     id="canvasWidth"
                     max={2000}
                     value={canvasWidth || ""}
-                    onChange={(e) => setCanvasWidth(e.target.value === "" ? 0 : Number(e.target.value))}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setCanvasWidth(val === "" ? 0 : Math.max(0, Number(val)));
+                    }}
                     placeholder="Enter canvas width"
                   />
                 </div>
@@ -202,7 +205,10 @@ export default function Home() {
                     id="canvasHeight"
                     max={2000}
                     value={canvasHeight || ""}
-                    onChange={(e) => setCanvasHeight(e.target.value === "" ? 0 : Number(e.target.value))}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setCanvasHeight(val === "" ? 0 : Math.max(0, Number(val)));
+                    }}
                     placeholder="Enter canvas height"
                   />
                 </div>

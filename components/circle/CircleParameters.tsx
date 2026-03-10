@@ -51,11 +51,12 @@ export default function CircleParameters({
           <Input
             type="number"
             id={`circle-diameter-${index}`}
+            min={0}
             max={500}
             value={diameter || ""}
             onChange={(e) => {
               const val = e.target.value;
-              onDiameterChange(val === "" ? 0 : Number(val));
+              onDiameterChange(val === "" ? 0 : Math.max(0, Number(val)));
             }}
             placeholder="Diameter"
             className="h-9"
@@ -70,11 +71,12 @@ export default function CircleParameters({
           <Input
             type="number"
             id={`circle-count-${index}`}
+            min={0}
             max={1000}
             value={count || ""}
             onChange={(e) => {
               const val = e.target.value;
-              onCountChange(val === "" ? 0 : Number(val));
+              onCountChange(val === "" ? 0 : Math.max(0, Number(val)));
             }}
             placeholder="Count"
             className="h-9"
