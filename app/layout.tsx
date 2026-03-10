@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
 import Navbar from "@/components/ui/navbar";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,6 +29,7 @@ export default function RootLayout({
         <SessionProvider>
           <Navbar />
           <main className="pt-16">{children}</main>
+          <Toaster richColors position="top-right" />
         </SessionProvider>
       </body>
     </html>

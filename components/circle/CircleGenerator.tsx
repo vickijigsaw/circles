@@ -32,11 +32,23 @@ export default function CircleGenerator({
 
     const [placedCircles, setPlacedCircles] = useState<PlacedCircle[]>([]);
     const [hasGenerated, setHasGenerated] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     // Only generate pattern when explicitly requested
     const generatePattern = () => {
+        setError(null);
+        const totalRequested = circles.reduce((sum, c) => sum + c.count, 0);
+
         if (!canvasWidth || !canvasHeight || circles.length === 0) {
             setPlacedCircles([]);
+            onPlacedCirclesChange?.([]);
+            return;
+        }
+
+        if (totalRequested === 0) {
+            setPlacedCircles([]);
+            setError("Please set a quantity greater than 0 for at least one circle type.");
+            setHasGenerated(true); // Still set this so we show the "Regenerate" button style if they had something before
             onPlacedCirclesChange?.([]);
             return;
         }
@@ -66,10 +78,14 @@ export default function CircleGenerator({
     // Generate initial pattern when component mounts or when circles array changes from empty to having items
     useEffect(() => {
         if (circles.length > 0 && !hasGenerated) {
-            generatePattern();
+            const totalRequested = circles.reduce((sum, c) => sum + c.count, 0);
+            if (totalRequested > 0) {
+                generatePattern();
+            }
         } else if (circles.length === 0) {
             setPlacedCircles([]);
             setHasGenerated(false);
+            setError(null);
             onPlacedCirclesChange?.([]);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -119,7 +135,7 @@ export default function CircleGenerator({
                         ))}
 
                         {/* No circles message */}
-                        {placedCircles.length === 0 && circles.length > 0 && (
+                        {placedCircles.length === 0 && circles.length > 0 && !error && (
                             <text
                                 x={canvasWidth / 2}
                                 y={canvasHeight / 2}
@@ -128,6 +144,20 @@ export default function CircleGenerator({
                                 fontSize="16"
                             >
                                 Generating pattern...
+                            </text>
+                        )}
+
+                        {/* Error message in SVG */}
+                        {error && (
+                            <text
+                                x={canvasWidth / 2}
+                                y={canvasHeight / 2}
+                                textAnchor="middle"
+                                fill="#ef4444"
+                                fontSize="16"
+                                className="font-medium"
+                            >
+                                {error}
                             </text>
                         )}
 
@@ -174,6 +204,12 @@ export default function CircleGenerator({
                 {totalPlaced === totalRequested && totalPlaced > 0 && (
                     <div className="text-xs text-green-600 bg-green-50 p-3 rounded-md border border-green-200">
                         ✅ All circles placed successfully!
+                    </div>
+                )}
+
+                {error && (
+                    <div className="text-xs text-red-600 bg-red-50 p-3 rounded-md border border-red-200">
+                        ❌ {error}
                     </div>
                 )}
             </CardContent>

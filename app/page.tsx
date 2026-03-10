@@ -10,6 +10,7 @@ import CircleGenerator from "@/components/circle/CircleGenerator";
 import { useSession } from "next-auth/react";
 import { PlacedCircle } from "@/components/utils/circleUtils";
 import { downloadSVG } from "@/components/utils/downloadUtils";
+import { toast } from "sonner";
 
 type CircleObject = {
   diameter: number;
@@ -109,42 +110,51 @@ export default function Home() {
   // Function to save pattern to gallery
   const handleSavePattern = async () => {
     if (!session?.user) {
-      alert("Please log in to save patterns!");
+      toast.error("Please log in to save patterns!");
       return;
     }
 
     if (placedCircles.length === 0) {
-      alert("Please generate a pattern first!");
+      toast.error("Please generate a pattern first!");
       return;
     }
 
-    const now = new Date();
-    const name = `Pattern_${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
+    const promise = async () => {
+      const now = new Date();
+      const name = `Pattern_${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}`;
 
-    const patternData = {
-      name,
-      canvasWidth,
-      canvasHeight,
-      circles: [
-        { diameter: firstCircleDiameter, count: firstCircleCount, color: firstCircleColor, index: 1 },
-        ...circleObjects
-      ],
-      placedCircles // Include the actual placed circles
+      const patternData = {
+        name,
+        canvasWidth,
+        canvasHeight,
+        circles: [
+          { diameter: firstCircleDiameter, count: firstCircleCount, color: firstCircleColor, index: 1 },
+          ...circleObjects
+        ],
+        placedCircles // Include the actual placed circles
+      };
+
+      const response = await fetch('/api/patterns', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(patternData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to save pattern");
+      }
+
+      const data = await response.json();
+      return data;
     };
 
-    const response = await fetch('/api/patterns', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(patternData),
+    toast.promise(promise, {
+      loading: 'Saving pattern to gallery...',
+      success: (data) => `Pattern "${data.pattern.name}" saved successfully!`,
+      error: 'Failed to save pattern.',
     });
-
-    if (response.ok) {
-      alert("Pattern saved to gallery!");
-    } else {
-      alert("Failed to save pattern.");
-    }
   };
 
   // Function to Download as SVG
