@@ -27,7 +27,7 @@ export default function CircleGenerator({
 }: CircleGeneratorProps) {
 
     const EDGE_MARGIN = 20;
-    const MIN_DISTANCE = 20;
+    const DEFAULT_MIN_DISTANCE = 20;
 
 
     const [placedCircles, setPlacedCircles] = useState<PlacedCircle[]>([]);
@@ -39,10 +39,64 @@ export default function CircleGenerator({
     // Only generate pattern when explicitly requested
     const generatePattern = () => {
         setError(null);
+        
+        const MIN_WIDTH = 50;
+        const MIN_HEIGHT = 50;
+        const availableWidth = canvasWidth - (EDGE_MARGIN * 2);
+        const availableHeight = canvasHeight - (EDGE_MARGIN * 2);
+
+        if (canvasWidth < MIN_WIDTH || canvasHeight < MIN_HEIGHT) {
+            setError(`Canvas size is too small. Minimum size is ${MIN_WIDTH}x${MIN_HEIGHT}px.`);
+            setPlacedCircles([]);
+            onPlacedCirclesChange?.([], canvasWidth, canvasHeight);
+            return;
+        }
+
+        // Determine dynamic minimum distance based on requested circles
+        // We use the smallest diameter among active circle types, capped at the default 20px
+        const activeCircles = circles.filter(c => c.count > 0);
+        const minDiameter = activeCircles.length > 0 
+            ? Math.min(...activeCircles.map(c => c.diameter))
+            : DEFAULT_MIN_DISTANCE;
+        
+        const effectiveMinDistance = Math.min(DEFAULT_MIN_DISTANCE, minDiameter);
+
+        // Check for circles that are physically too large
+        const tooLargeCircle = circles.find(c => c.count > 0 && (c.diameter > availableWidth || c.diameter > availableHeight));
+        if (tooLargeCircle) {
+            setError(`Circle type #${tooLargeCircle.index} is too large (${tooLargeCircle.diameter}px) to fit in the available canvas area (${availableWidth}x${availableHeight}px).`);
+            setPlacedCircles([]);
+            onPlacedCirclesChange?.([], canvasWidth, canvasHeight);
+            return;
+        }
+
+        // Density check: Sum of circle areas + buffer for distance
+        const totalRequested = circles.reduce((sum, c) => sum + c.count, 0);
+        
+        const totalAreaNeeded = circles.reduce((sum, c) => {
+            // Base area of the circle (as a square for conservative placement)
+            const circleArea = c.diameter * c.diameter;
+            
+            // Add buffer for the distance between circles, but only if we have multiple circles
+            // This buffer is simplified: it accounts for the extra space needed to avoid overlaps
+            const distanceBuffer = totalRequested > 1 ? (effectiveMinDistance * c.diameter * 2) + (effectiveMinDistance * effectiveMinDistance) : 0;
+            
+            return sum + (circleArea + distanceBuffer) * c.count;
+        }, 0);
+        
+        const totalAvailableArea = availableWidth * availableHeight;
+        
+        // If the area needed is significantly more than available, block it
+        // We use a factor of 1.2 to allow for some inefficiency in random placement
+        if (totalAreaNeeded > totalAvailableArea * 1.2 && totalRequested > 0) {
+            setError("The requested number/size of circles is too high for this canvas. Try a larger canvas or fewer circles.");
+            setPlacedCircles([]);
+            onPlacedCirclesChange?.([], canvasWidth, canvasHeight);
+            return;
+        }
+
         setAppliedWidth(canvasWidth);
         setAppliedHeight(canvasHeight);
-        
-        const totalRequested = circles.reduce((sum, c) => sum + c.count, 0);
 
         if (!canvasWidth || !canvasHeight || circles.length === 0) {
             setPlacedCircles([]);
@@ -64,7 +118,7 @@ export default function CircleGenerator({
             canvasHeight,
             circles,
             EDGE_MARGIN,
-            MIN_DISTANCE
+            effectiveMinDistance
         );
 
         // Normalize them to include diameter + color
@@ -106,11 +160,11 @@ export default function CircleGenerator({
         <Card className="w-full">
             <CardContent className="p-6 space-y-4">
                 {/* Canvas */}
-                <div className="border-2 rounded-lg overflow-hidden bg-white shadow-inner">
+                <div className="border-2 rounded-lg overflow-hidden bg-white shadow-inner relative group">
                     <svg
                         width={appliedWidth}
                         height={appliedHeight}
-                        className="w-full h-auto"
+                        className="w-full h-auto block"
                         viewBox={`0 0 ${appliedWidth} ${appliedHeight}`}
                     >
                         {/* Background */}
@@ -141,47 +195,28 @@ export default function CircleGenerator({
                                 strokeWidth="2"
                             />
                         ))}
-
-                        {/* No circles message */}
-                        {placedCircles.length === 0 && circles.length > 0 && !error && (
-                            <text
-                                x={appliedWidth / 2}
-                                y={appliedHeight / 2}
-                                textAnchor="middle"
-                                fill="#999"
-                                fontSize="16"
-                            >
-                                Generating pattern...
-                            </text>
-                        )}
-
-                        {/* Error message in SVG */}
-                        {error && (
-                            <text
-                                x={appliedWidth / 2}
-                                y={appliedHeight / 2}
-                                textAnchor="middle"
-                                fill="#ef4444"
-                                fontSize="16"
-                                className="font-medium"
-                            >
-                                {error}
-                            </text>
-                        )}
-
-                        {/* No parameters message */}
-                        {circles.length === 0 && (
-                            <text
-                                x={appliedWidth / 2}
-                                y={appliedHeight / 2}
-                                textAnchor="middle"
-                                fill="#999"
-                                fontSize="16"
-                            >
-                                Add circle parameters to generate pattern
-                            </text>
-                        )}
                     </svg>
+
+                    {/* Centered Overlay Messages (CSS-based to keep size consistent) */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none p-4 text-center">
+                        {placedCircles.length === 0 && circles.length > 0 && !error && (
+                            <span className="text-sm text-muted-foreground animate-pulse">
+                                Generating pattern...
+                            </span>
+                        )}
+
+                        {error && (
+                            <span className="text-sm text-red-500 font-medium bg-white/80 px-2 py-1 rounded shadow-sm">
+                                {error}
+                            </span>
+                        )}
+
+                        {circles.length === 0 && (
+                            <span className="text-sm text-muted-foreground">
+                                Add circle parameters to generate pattern
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 {/* Info & Controls */}
