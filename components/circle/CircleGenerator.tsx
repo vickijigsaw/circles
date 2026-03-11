@@ -16,7 +16,7 @@ interface CircleGeneratorProps {
     canvasWidth: number;
     canvasHeight: number;
     circles: Circle[];
-    onPlacedCirclesChange?: (placedCircles: PlacedCircle[]) => void;
+    onPlacedCirclesChange?: (placedCircles: PlacedCircle[], width: number, height: number) => void;
 }
 
 export default function CircleGenerator({
@@ -33,15 +33,20 @@ export default function CircleGenerator({
     const [placedCircles, setPlacedCircles] = useState<PlacedCircle[]>([]);
     const [hasGenerated, setHasGenerated] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [appliedWidth, setAppliedWidth] = useState(canvasWidth);
+    const [appliedHeight, setAppliedHeight] = useState(canvasHeight);
 
     // Only generate pattern when explicitly requested
     const generatePattern = () => {
         setError(null);
+        setAppliedWidth(canvasWidth);
+        setAppliedHeight(canvasHeight);
+        
         const totalRequested = circles.reduce((sum, c) => sum + c.count, 0);
 
         if (!canvasWidth || !canvasHeight || circles.length === 0) {
             setPlacedCircles([]);
-            onPlacedCirclesChange?.([]);
+            onPlacedCirclesChange?.([], canvasWidth, canvasHeight);
             return;
         }
 
@@ -49,7 +54,7 @@ export default function CircleGenerator({
             setPlacedCircles([]);
             setError("Please set a quantity greater than 0 for at least one circle type.");
             setHasGenerated(true); // Still set this so we show the "Regenerate" button style if they had something before
-            onPlacedCirclesChange?.([]);
+            onPlacedCirclesChange?.([], canvasWidth, canvasHeight);
             return;
         }
 
@@ -72,7 +77,7 @@ export default function CircleGenerator({
         // Store and notify
         setPlacedCircles(normalized);
         setHasGenerated(true);
-        onPlacedCirclesChange?.(normalized);
+        onPlacedCirclesChange?.(normalized, canvasWidth, canvasHeight);
     };
 
     // Generate initial pattern when component mounts or when circles array changes from empty to having items
@@ -86,7 +91,10 @@ export default function CircleGenerator({
             setPlacedCircles([]);
             setHasGenerated(false);
             setError(null);
-            onPlacedCirclesChange?.([]);
+            onPlacedCirclesChange?.([], canvasWidth, canvasHeight);
+            // Sync dimensions when no pattern exists
+            setAppliedWidth(canvasWidth);
+            setAppliedHeight(canvasHeight);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [circles, canvasWidth, canvasHeight]);
@@ -100,20 +108,20 @@ export default function CircleGenerator({
                 {/* Canvas */}
                 <div className="border-2 rounded-lg overflow-hidden bg-white shadow-inner">
                     <svg
-                        width={canvasWidth}
-                        height={canvasHeight}
+                        width={appliedWidth}
+                        height={appliedHeight}
                         className="w-full h-auto"
-                        viewBox={`0 0 ${canvasWidth} ${canvasHeight}`}
+                        viewBox={`0 0 ${appliedWidth} ${appliedHeight}`}
                     >
                         {/* Background */}
-                        <rect width={canvasWidth} height={canvasHeight} fill="#fff" />
+                        <rect width={appliedWidth} height={appliedHeight} fill="#fff" />
 
                         {/* Margin guide */}
                         <rect
                             x={EDGE_MARGIN}
                             y={EDGE_MARGIN}
-                            width={canvasWidth - 2 * EDGE_MARGIN}
-                            height={canvasHeight - 2 * EDGE_MARGIN}
+                            width={appliedWidth - 2 * EDGE_MARGIN}
+                            height={appliedHeight - 2 * EDGE_MARGIN}
                             fill="none"
                             stroke="#e0e0e0"
                             strokeWidth="1"
@@ -137,8 +145,8 @@ export default function CircleGenerator({
                         {/* No circles message */}
                         {placedCircles.length === 0 && circles.length > 0 && !error && (
                             <text
-                                x={canvasWidth / 2}
-                                y={canvasHeight / 2}
+                                x={appliedWidth / 2}
+                                y={appliedHeight / 2}
                                 textAnchor="middle"
                                 fill="#999"
                                 fontSize="16"
@@ -150,8 +158,8 @@ export default function CircleGenerator({
                         {/* Error message in SVG */}
                         {error && (
                             <text
-                                x={canvasWidth / 2}
-                                y={canvasHeight / 2}
+                                x={appliedWidth / 2}
+                                y={appliedHeight / 2}
                                 textAnchor="middle"
                                 fill="#ef4444"
                                 fontSize="16"
@@ -164,8 +172,8 @@ export default function CircleGenerator({
                         {/* No parameters message */}
                         {circles.length === 0 && (
                             <text
-                                x={canvasWidth / 2}
-                                y={canvasHeight / 2}
+                                x={appliedWidth / 2}
+                                y={appliedHeight / 2}
                                 textAnchor="middle"
                                 fill="#999"
                                 fontSize="16"
@@ -179,7 +187,7 @@ export default function CircleGenerator({
                 {/* Info & Controls */}
                 <div className="flex items-center justify-between pt-2">
                     <div className="text-sm text-muted-foreground space-y-1">
-                        <p>Canvas: {canvasWidth} × {canvasHeight}px</p>
+                        <p>Canvas: {appliedWidth} × {appliedHeight}px</p>
                         <p>Circles placed: {totalPlaced} / {totalRequested}</p>
                         <p>Circle types: {circles.length}</p>
                     </div>

@@ -32,6 +32,10 @@ export default function Home() {
   const [canvasWidth, setCanvasWidth] = useState<number>(1000);
   const [canvasHeight, setCanvasHeight] = useState<number>(500);
 
+  // State for applied dimensions (those used in the current generation)
+  const [appliedWidth, setAppliedWidth] = useState<number>(1000);
+  const [appliedHeight, setAppliedHeight] = useState<number>(500);
+
   // State for placed circles (actual positions)
   const [placedCircles, setPlacedCircles] = useState<PlacedCircle[]>([]);
 
@@ -125,8 +129,8 @@ export default function Home() {
 
       const patternData = {
         name,
-        canvasWidth,
-        canvasHeight,
+        canvasWidth: appliedWidth,
+        canvasHeight: appliedHeight,
         circles: [
           { diameter: firstCircleDiameter, count: firstCircleCount, color: firstCircleColor, index: 1 },
           ...circleObjects
@@ -161,8 +165,8 @@ export default function Home() {
   const handleExportSVG = () => {
     const patternData = {
       name: "CurrentPattern",
-      canvasWidth,
-      canvasHeight,
+      canvasWidth: appliedWidth,
+      canvasHeight: appliedHeight,
       placedCircles,
     };
 
@@ -300,7 +304,11 @@ export default function Home() {
                 { diameter: firstCircleDiameter, count: firstCircleCount, color: firstCircleColor, index: 1 },
                 ...circleObjects
               ]}
-              onPlacedCirclesChange={setPlacedCircles}
+              onPlacedCirclesChange={(placed, w, h) => {
+                setPlacedCircles(placed);
+                setAppliedWidth(w);
+                setAppliedHeight(h);
+              }}
             />
           </div>
         </div>
